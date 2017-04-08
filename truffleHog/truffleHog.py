@@ -70,10 +70,11 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-def find_strings(git_url, printJson=False):
+def find_strings(git_url, printJson=False, silent=False):
     project_path = tempfile.mkdtemp()
     Repo.clone_from(git_url, project_path)
     output = {"entropicDiffs": []}
+    output["git_url"] = git_url
     repo = Repo(project_path)
     already_searched = set()
 
@@ -124,16 +125,17 @@ def find_strings(git_url, printJson=False):
                         entropicDiff['date'] = commit_time
                         entropicDiff['branch'] = branch_name
                         entropicDiff['commit'] = prev_commit.message
-                        entropicDiff['diff'] = blob.diff.decode('utf-8', errors='replace') 
+                        entropicDiff['diff'] = blob.diff.decode('utf-8', errors='replace')
                         entropicDiff['stringsFound'] = stringsFound
                         output["entropicDiffs"].append(entropicDiff)
-                        if printJson:
-                            print(json.dumps(output, sort_keys=True, indent=4))
-                        else:
-                            print(bcolors.OKGREEN + "Date: " + commit_time + bcolors.ENDC)
-                            print(bcolors.OKGREEN + "Branch: " + branch_name + bcolors.ENDC)
-                            print(bcolors.OKGREEN + "Commit: " + prev_commit.message + bcolors.ENDC)
-                            print(printableDiff)
+                        if not silent:
+                            if printJson:
+                                print(json.dumps(output, sort_keys=True, indent=4))
+                            else:
+                                print(bcolors.OKGREEN + "Date: " + commit_time + bcolors.ENDC)
+                                print(bcolors.OKGREEN + "Branch: " + branch_name + bcolors.ENDC)
+                                print(bcolors.OKGREEN + "Commit: " + prev_commit.message + bcolors.ENDC)
+                                print(printableDiff)
 
             prev_commit = curr_commit
     output["project_path"] = project_path
